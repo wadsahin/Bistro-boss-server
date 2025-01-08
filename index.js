@@ -5,8 +5,6 @@ require('dotenv').config()
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const port = process.env.PORT || 5000;
 
-
-
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -14,9 +12,6 @@ app.use(express.json());
 app.get("/", (req, res) =>{
   res.send("Bistro boss is running....")
 })
-
-// Bistro-Boss
-// oTWreY3KelAuwDFq
 
 const uri = `mongodb+srv://${process.env.USER_DB}:${process.env.USER_PASS}@cluster0.l0f7v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -33,8 +28,21 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const menuCollection = client.db("BistroDb").collection("menu");
+    const reviewCollection = client.db("BistroDb").collection("reviews");
 
+    // Get APIs
+    app.get("/menu", async(req, res) =>{
+      const result = await menuCollection.find().toArray();
+      res.send(result);
+    });
 
+    app.get("/reviews", async(req, res) =>{
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    })
+
+    // Post APIs
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
