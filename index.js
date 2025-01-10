@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 // Middleware
@@ -28,21 +28,53 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const userCollection = client.db("BistroDb").collection("users");
     const menuCollection = client.db("BistroDb").collection("menu");
     const reviewCollection = client.db("BistroDb").collection("reviews");
+    const cartCollection = client.db("BistroDb").collection("carts");
 
-    // Get APIs
+    // User related Apis
+    app.post("/users", async(req, res) =>{
+      const user = req.body;
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // Menu Related Apis
     app.get("/menu", async(req, res) =>{
       const result = await menuCollection.find().toArray();
       res.send(result);
     });
 
+    // Review Related Apis
     app.get("/reviews", async(req, res) =>{
       const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Carts Related APIs
+    app.get("/carts", async(req, res) =>{
+      const email = req.query.email;
+      const query = {email: email};
+      const result = await cartCollection.find(query).toArray();
       res.send(result);
     })
 
     // Post APIs
+    app.post('/carts', async(req, res) =>{
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
+    });
+
+    // Delete APIs
+    app.delete('/carts/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await cartCollection.deleteOne(query);
+      res.send(result);
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
